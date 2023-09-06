@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="MaterialSpinner">
+        <attr name="msp_hint" format="string"/>
+        <attr name="msp_icon" format="reference"/>
+        <attr name="msp_iconPosition" format="enum">
+            <enum name="start" value="0"/>
+            <enum name="end" value="1"/>
+        </attr>
+        <attr name="msp_items" format="reference"/>
+    </declare-styleable>
+</resources>
