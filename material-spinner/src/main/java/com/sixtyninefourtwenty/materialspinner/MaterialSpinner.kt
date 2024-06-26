@@ -2,6 +2,7 @@ package com.sixtyninefourtwenty.materialspinner
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.res.TypedArray
 import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.widget.AdapterView
@@ -14,11 +15,41 @@ import com.sixtyninefourtwenty.materialspinner.databinding.MaterialSpinnerConten
 import java.util.function.IntConsumer
 
 @Suppress("unused", "MemberVisibilityCanBePrivate")
-class MaterialSpinner @JvmOverloads constructor(
-    context: Context,
-    attributeSet: AttributeSet? = null,
-    defStyleAttr: Int = 0
-): FrameLayout(context, attributeSet, defStyleAttr) {
+class MaterialSpinner : FrameLayout {
+
+    @JvmOverloads
+    constructor(context: Context, attrs: AttributeSet? = null) : super(context, attrs) {
+        val attributes = context.obtainStyledAttributes(attrs, R.styleable.MaterialSpinner)
+        init(attributes)
+    }
+
+    constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : super(context, attrs, defStyleAttr) {
+        val attributes = context.obtainStyledAttributes(attrs, R.styleable.MaterialSpinner, defStyleAttr, 0)
+        init(attributes)
+    }
+
+    private fun init(attributes: TypedArray) {
+        val hint = attributes.getString(R.styleable.MaterialSpinner_msp_hint)
+        val spinnerIcon = attributes.getResourceId(R.styleable.MaterialSpinner_msp_icon, 0)
+        val iconPosition = attributes.getInt(R.styleable.MaterialSpinner_msp_iconPosition, -1)
+        val items = attributes.getResourceId(R.styleable.MaterialSpinner_msp_items, 0)
+
+        when (iconPosition) {
+            0 -> setStartIconDrawable(spinnerIcon)
+            1 -> setEndIconDrawable(spinnerIcon)
+        }
+        this.hint = hint
+        if (items != 0) {
+            setItemStringArrayRes(items)
+        }
+
+        attributes.recycle()
+
+        binding.autoCompleteTextView.setOnItemClickListener { _, _, position, _ ->
+            _itemSelectedPosition = position
+            itemSelectedListener?.accept(position)
+        }
+    }
 
     private val binding = MaterialSpinnerContentBinding.inflate(LayoutInflater.from(context), this, true)
 
@@ -58,39 +89,12 @@ class MaterialSpinner @JvmOverloads constructor(
         get() = binding.textInputLayout.hint
         set(value) { binding.textInputLayout.hint = value }
 
-    init {
-        val attributes = context.theme.obtainStyledAttributes(attributeSet,
-            R.styleable.MaterialSpinner, defStyleAttr, defStyleAttr)
-        val hint = attributes.getString(R.styleable.MaterialSpinner_msp_hint)
-        val spinnerIcon = attributes.getResourceId(R.styleable.MaterialSpinner_msp_icon, 0)
-        val iconPosition = attributes.getInt(R.styleable.MaterialSpinner_msp_iconPosition, -1)
-        val items = attributes.getResourceId(R.styleable.MaterialSpinner_msp_items, 0)
-
-        when (iconPosition) {
-            0 -> setStartIconDrawable(spinnerIcon)
-            1 -> setEndIconDrawable(spinnerIcon)
-        }
-        this.hint = hint
-        if (items != 0) {
-            setItemStringArrayRes(items)
-        }
-
-        attributes.recycle()
-
-        binding.autoCompleteTextView.setOnItemClickListener { _, _, position, _ ->
-            _itemSelectedPosition = position
-            itemSelectedListener?.accept(position)
-        }
-
-    }
-
     /**
      * Set a string array resource id as selections. Can be 0, in which case no items will be set
      * and the [itemSelectedListener] will be called with [AdapterView.INVALID_POSITION].
      */
     fun setItemStringArrayRes(@ArrayRes items: Int) {
-        binding.autoCompleteTextView.setAdapter(if (items != 0) ArrayAdapter(context, R.layout.spinner_item, resources.getStringArray(items)) else null)
-        selectFirstItemIfAvailableOrNone()
+        setCustomAdapter(if (items != 0) ArrayAdapter(context, R.layout.spinner_item, resources.getStringArray(items)) else null)
     }
 
     /**
@@ -98,8 +102,7 @@ class MaterialSpinner @JvmOverloads constructor(
      * and the [itemSelectedListener] will be called with [AdapterView.INVALID_POSITION].
      */
     fun setItemArray(list: Array<Any>?) {
-        binding.autoCompleteTextView.setAdapter(if (!list.isNullOrEmpty()) ArrayAdapter(context, R.layout.spinner_item, list) else null)
-        selectFirstItemIfAvailableOrNone()
+        setCustomAdapter(if (!list.isNullOrEmpty()) ArrayAdapter(context, R.layout.spinner_item, list) else null)
     }
 
     /**
@@ -107,8 +110,7 @@ class MaterialSpinner @JvmOverloads constructor(
      * and the [itemSelectedListener] will be called with [AdapterView.INVALID_POSITION].
      */
     fun setItemList(list: List<Any>?) {
-        binding.autoCompleteTextView.setAdapter(if (!list.isNullOrEmpty()) ArrayAdapter(context, R.layout.spinner_item, list) else null)
-        selectFirstItemIfAvailableOrNone()
+        setCustomAdapter(if (!list.isNullOrEmpty()) ArrayAdapter(context, R.layout.spinner_item, list) else null)
     }
 
     /**
