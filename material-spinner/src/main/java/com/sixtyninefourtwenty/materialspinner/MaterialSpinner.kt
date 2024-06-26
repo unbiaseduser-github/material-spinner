@@ -47,17 +47,40 @@ class MaterialSpinner : FrameLayout {
 
         binding.autoCompleteTextView.setOnItemClickListener { _, _, position, _ ->
             _itemSelectedPosition = position
-            itemSelectedListener?.accept(position)
+            notifyListeners(position)
         }
     }
 
     private val binding = MaterialSpinnerContentBinding.inflate(LayoutInflater.from(context), this, true)
 
+    private val listeners = mutableSetOf<IntConsumer>()
+
+    fun addItemSelectedListener(listener: IntConsumer) = listeners.add(listener)
+
+    fun addItemSelectedListenerAndNotify(listener: IntConsumer) {
+        val added = addItemSelectedListener(listener)
+        if (added) {
+            listener.accept(itemSelectedPosition)
+        }
+    }
+
+    fun removeItemSelectedListener(listener: IntConsumer) = listeners.remove(listener)
+
+    fun clearItemSelectedListeners() = listeners.clear()
+
+    @Deprecated("Use addItemSelectedListener instead.", replaceWith = ReplaceWith("addItemSelectedListener"))
     var itemSelectedListener: IntConsumer? = null
 
+    @Deprecated("Use addItemSelectedListenerAndNotify instead.", replaceWith = ReplaceWith("addItemSelectedListenerAndNotify"))
     fun setListenerAndNotify(listener: IntConsumer) {
         itemSelectedListener = listener
         listener.accept(itemSelectedPosition)
+    }
+
+    @Suppress("DEPRECATION")
+    private fun notifyListeners(position: Int) {
+        listeners.forEach { it.accept(position) }
+        itemSelectedListener?.accept(position)
     }
 
     private var _itemSelectedPosition: Int = AdapterView.INVALID_POSITION
@@ -77,7 +100,7 @@ class MaterialSpinner : FrameLayout {
                     binding.autoCompleteTextView.setText(adapter.getItem(value).toString(), false)
                 }
             }
-            itemSelectedListener?.accept(value)
+            notifyListeners(value)
             _itemSelectedPosition = value
         }
 
