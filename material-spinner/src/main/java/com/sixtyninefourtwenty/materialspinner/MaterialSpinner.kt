@@ -1,5 +1,6 @@
 package com.sixtyninefourtwenty.materialspinner
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.util.AttributeSet
 import android.view.LayoutInflater
@@ -28,7 +29,11 @@ class MaterialSpinner @JvmOverloads constructor(
         listener.accept(itemSelectedPosition)
     }
 
-    var itemSelectedPosition: Int = AdapterView.INVALID_POSITION
+    private var _itemSelectedPosition: Int = AdapterView.INVALID_POSITION
+
+    var itemSelectedPosition: Int
+        get() = _itemSelectedPosition
+        @SuppressLint("SetTextI18n")
         set(value) {
             if (value == AdapterView.INVALID_POSITION) {
                 binding.autoCompleteTextView.setText("", false)
@@ -42,7 +47,7 @@ class MaterialSpinner @JvmOverloads constructor(
                 }
             }
             itemSelectedListener?.accept(value)
-            field = value
+            _itemSelectedPosition = value
         }
 
     var error: CharSequence?
@@ -73,7 +78,7 @@ class MaterialSpinner @JvmOverloads constructor(
         attributes.recycle()
 
         binding.autoCompleteTextView.setOnItemClickListener { _, _, position, _ ->
-            itemSelectedPosition = position
+            _itemSelectedPosition = position
             itemSelectedListener?.accept(position)
         }
 
