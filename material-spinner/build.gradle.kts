@@ -50,7 +50,7 @@ afterEvaluate {
             register<MavenPublication>("release") {
                 groupId = "com.sixtyninefourtwenty"
                 artifactId = "material-spinner"
-                version = "1.0"
+                version = "1.1"
 
                 from(components["release"])
 
