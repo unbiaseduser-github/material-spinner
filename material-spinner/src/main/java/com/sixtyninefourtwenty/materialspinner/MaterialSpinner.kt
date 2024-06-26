@@ -147,16 +147,11 @@ class MaterialSpinner : FrameLayout {
 
     private fun selectFirstItemIfAvailableOrNone() {
         val adapter = binding.autoCompleteTextView.adapter
-        val textToSet: String
         itemSelectedPosition = if (!adapter.isNullOrEmpty()) {
-            textToSet = adapter.getItem(0).toString()
             0
         } else {
-            textToSet = ""
             AdapterView.INVALID_POSITION
         }
-        binding.autoCompleteTextView.setText(textToSet, false)
-        itemSelectedListener?.accept(itemSelectedPosition)
     }
 
     fun setStartIconDrawable(iconRes: Int) = binding.textInputLayout.setStartIconDrawable(iconRes)
