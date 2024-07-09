@@ -45,17 +45,52 @@ class MaterialSpinner : FrameLayout {
 
         attributes.recycle()
 
-        binding.autoCompleteTextView.setOnItemClickListener { _, _, position, _ ->
+        binding.autoCompleteTextView.setOnItemClickListener { adapterView: AdapterView<*>, _, position, _ ->
             _itemSelectedPosition = position
-            notifyListeners(position)
+            notifyListeners(position, adapterView.getItemAtPosition(position))
+        }
+    }
+
+    fun interface OnItemSelectedListener {
+
+        /**
+         * @param position The position of the item selected.
+         * @param item The selected item. Can be null if the data set passed into the `set...` methods
+         * contain null items, or [itemSelectedPosition] is set to [AdapterView.INVALID_POSITION].
+         */
+        fun onItemSelected(position: Int, item: Any?)
+
+        companion object {
+            @JvmStatic
+            fun from(intConsumer: IntConsumer) = OnItemSelectedListener { position, _ ->
+                intConsumer.accept(position)
+            }
         }
     }
 
     private val binding = MaterialSpinnerContentBinding.inflate(LayoutInflater.from(context), this, true)
 
-    private val listeners = mutableSetOf<IntConsumer>()
+    private val itemSelectedListeners = mutableSetOf<OnItemSelectedListener>()
 
-    fun addItemSelectedListener(listener: IntConsumer) = listeners.add(listener)
+    fun addItemSelectedListener(listener: OnItemSelectedListener) = itemSelectedListeners.add(listener)
+
+    fun addItemSelectedListenerAndNotify(listener: OnItemSelectedListener): Boolean {
+        val added = addItemSelectedListener(listener)
+        if (added) {
+            val adapter = binding.autoCompleteTextView.adapter
+            listener.onItemSelected(
+                itemSelectedPosition,
+                if (adapter.isNullOrEmpty()) null else adapter.getItem(itemSelectedPosition)
+            )
+        }
+        return added
+    }
+
+    fun removeItemSelectedListener(listener: OnItemSelectedListener) = itemSelectedListeners.remove(listener)
+
+    private val positionListeners = mutableSetOf<IntConsumer>()
+
+    fun addItemSelectedListener(listener: IntConsumer) = positionListeners.add(listener)
 
     fun addItemSelectedListenerAndNotify(listener: IntConsumer) {
         val added = addItemSelectedListener(listener)
@@ -64,9 +99,12 @@ class MaterialSpinner : FrameLayout {
         }
     }
 
-    fun removeItemSelectedListener(listener: IntConsumer) = listeners.remove(listener)
+    fun removeItemSelectedListener(listener: IntConsumer) = positionListeners.remove(listener)
 
-    fun clearItemSelectedListeners() = listeners.clear()
+    fun clearItemSelectedListeners() {
+        itemSelectedListeners.clear()
+        positionListeners.clear()
+    }
 
     @Deprecated("Use addItemSelectedListener instead.", replaceWith = ReplaceWith("addItemSelectedListener"))
     var itemSelectedListener: IntConsumer? = null
@@ -78,8 +116,9 @@ class MaterialSpinner : FrameLayout {
     }
 
     @Suppress("DEPRECATION")
-    private fun notifyListeners(position: Int) {
-        listeners.forEach { it.accept(position) }
+    private fun notifyListeners(position: Int, item: Any?) {
+        itemSelectedListeners.forEach { it.onItemSelected(position, item) }
+        positionListeners.forEach { it.accept(position) }
         itemSelectedListener?.accept(position)
     }
 
@@ -89,18 +128,23 @@ class MaterialSpinner : FrameLayout {
         get() = _itemSelectedPosition
         @SuppressLint("SetTextI18n")
         set(value) {
+            val itemToNotify: Any?
             if (value == AdapterView.INVALID_POSITION) {
                 binding.autoCompleteTextView.setText("", false)
+                itemToNotify = null
             } else {
                 val adapter = binding.autoCompleteTextView.adapter
                 if (!adapter.isNullOrEmpty()) {
                     if (value < 0 || value >= adapter.count) {
                         throw IndexOutOfBoundsException("Position out of bounds of dataset")
                     }
+                    itemToNotify = adapter.getItem(value)
                     binding.autoCompleteTextView.setText(adapter.getItem(value).toString(), false)
+                } else {
+                    itemToNotify = null
                 }
             }
-            notifyListeners(value)
+            notifyListeners(value, itemToNotify)
             _itemSelectedPosition = value
         }
 
