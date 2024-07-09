@@ -125,25 +125,29 @@ class MaterialSpinner : FrameLayout {
 
     private var _itemSelectedPosition: Int = AdapterView.INVALID_POSITION
 
+    /**
+     * The currently selected item position.
+     *
+     * The setter throws [IllegalArgumentException] if set to a >= 0 value and no items are present.
+     * Can be set to [AdapterView.INVALID_POSITION] to "deselect" items.
+     */
     var itemSelectedPosition: Int
         get() = _itemSelectedPosition
         @SuppressLint("SetTextI18n")
         set(value) {
+            require(value == AdapterView.INVALID_POSITION || value >= 0) {
+                "Item selected position must be either AdapterView.INVALID_POSITION or >= 0"
+            }
             val itemToNotify: Any?
             if (value == AdapterView.INVALID_POSITION) {
                 binding.autoCompleteTextView.setText("", false)
                 itemToNotify = null
             } else {
                 val adapter = binding.autoCompleteTextView.adapter
-                if (!adapter.isNullOrEmpty()) {
-                    if (value < 0 || value >= adapter.count) {
-                        throw IndexOutOfBoundsException("Position out of bounds of dataset")
-                    }
-                    itemToNotify = adapter.getItem(value)
-                    binding.autoCompleteTextView.setText(adapter.getItem(value).toString(), false)
-                } else {
-                    itemToNotify = null
-                }
+                require(!adapter.isNullOrEmpty()) { "Item selected position set to a number >= 0 ($value) but no items are present." }
+                val item = adapter.getItem(value)
+                itemToNotify = item
+                binding.autoCompleteTextView.setText(item.toString(), false)
             }
             notifyListeners(value, itemToNotify)
             _itemSelectedPosition = value
