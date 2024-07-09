@@ -56,7 +56,8 @@ class MaterialSpinner : FrameLayout {
         /**
          * @param position The position of the item selected.
          * @param item The selected item. Can be null if the data set passed into the `set...` methods
-         * contain null items, or [itemSelectedPosition] is set to [AdapterView.INVALID_POSITION].
+         * contain null items, or the `set...` methods are called with `null`, or [itemSelectedPosition]
+         * is set to [AdapterView.INVALID_POSITION].
          */
         fun onItemSelected(position: Int, item: Any?)
 
@@ -162,32 +163,44 @@ class MaterialSpinner : FrameLayout {
         set(value) { binding.textInputLayout.hint = value }
 
     /**
-     * Set a string array resource id as selections. Can be 0, in which case no items will be set
-     * and the [itemSelectedListener] will be called with [AdapterView.INVALID_POSITION].
+     * Set a string array resource id as selections. If not 0, all listeners will be called with
+     * the first position and item.
+     *
+     * Can be 0, in which case no items will be set
+     * and all listeners will be called with [AdapterView.INVALID_POSITION] and a `null` item.
      */
     fun setItemStringArrayRes(@ArrayRes items: Int) {
         setCustomAdapter(if (items != 0) ArrayAdapter(context, R.layout.spinner_item, resources.getStringArray(items)) else null)
     }
 
     /**
-     * Set an array of objects as selections. In case the array is null or empty, no items will be set
-     * and the [itemSelectedListener] will be called with [AdapterView.INVALID_POSITION].
+     * Set an array of objects as selections. If it has items, all listeners will be called with
+     * the first position and item.
+     *
+     * In case the array is null or empty, no items will be set
+     * and all listeners will be called with [AdapterView.INVALID_POSITION] and a `null` item.
      */
     fun setItemArray(list: Array<Any>?) {
         setCustomAdapter(if (!list.isNullOrEmpty()) ArrayAdapter(context, R.layout.spinner_item, list) else null)
     }
 
     /**
-     * Set a list of objects as selections. In case the list is null or empty, no items will be set
-     * and the [itemSelectedListener] will be called with [AdapterView.INVALID_POSITION].
+     * Set a list of objects as selections. If it has items, all listeners will be called with
+     * the first position and item.
+     *
+     * In case the list is null or empty, no items will be set
+     * and all listeners will be called with [AdapterView.INVALID_POSITION] and a `null` item.
      */
     fun setItemList(list: List<Any>?) {
         setCustomAdapter(if (!list.isNullOrEmpty()) ArrayAdapter(context, R.layout.spinner_item, list) else null)
     }
 
     /**
-     * Set a custom adapter as selections. Can be null, in which case no items will be set
-     * and the [itemSelectedListener] will be called with [AdapterView.INVALID_POSITION].
+     * Set a custom adapter as selections. If it has items, all listeners will be called with
+     * the first position and item.
+     *
+     * Can be null, in which case no items will be set
+     * and all listeners will be called with [AdapterView.INVALID_POSITION] and a `null` item.
      */
     fun <T> setCustomAdapter(adapter: T?) where T : ListAdapter, T : Filterable {
         binding.autoCompleteTextView.setAdapter(adapter)
