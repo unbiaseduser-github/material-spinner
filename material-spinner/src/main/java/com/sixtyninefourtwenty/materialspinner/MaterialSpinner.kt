@@ -92,11 +92,12 @@ class MaterialSpinner : FrameLayout {
 
     fun addItemSelectedListener(listener: IntConsumer) = positionListeners.add(listener)
 
-    fun addItemSelectedListenerAndNotify(listener: IntConsumer) {
+    fun addItemSelectedListenerAndNotify(listener: IntConsumer): Boolean {
         val added = addItemSelectedListener(listener)
         if (added) {
             listener.accept(itemSelectedPosition)
         }
+        return added
     }
 
     fun removeItemSelectedListener(listener: IntConsumer) = positionListeners.remove(listener)
