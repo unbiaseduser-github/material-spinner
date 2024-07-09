@@ -180,7 +180,7 @@ class MaterialSpinner : FrameLayout {
      * In case the array is null or empty, no items will be set
      * and all listeners will be called with [AdapterView.INVALID_POSITION] and a `null` item.
      */
-    fun setItemArray(list: Array<Any>?) {
+    fun setItemArray(list: Array<Any?>?) {
         setCustomAdapter(if (!list.isNullOrEmpty()) ArrayAdapter(context, R.layout.spinner_item, list) else null)
     }
 
@@ -191,7 +191,7 @@ class MaterialSpinner : FrameLayout {
      * In case the list is null or empty, no items will be set
      * and all listeners will be called with [AdapterView.INVALID_POSITION] and a `null` item.
      */
-    fun setItemList(list: List<Any>?) {
+    fun setItemList(list: List<Any?>?) {
         setCustomAdapter(if (!list.isNullOrEmpty()) ArrayAdapter(context, R.layout.spinner_item, list) else null)
     }
 
